@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SMART GOAL TRACKER</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: url('https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+      background-size: cover;
+      margin: 0; padding: 20px;
+      color: #004d40;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #00796b;
+      margin-bottom: 20px;
+      text-shadow: 1px 1px 2px #a7d7c5;
+    }
+
+    .goal-input-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 15px;
+    }
+
+    #goal-input {
+      width: 100%;
+      padding: 8px 30px 8px 10px;
+      font-size: 14px;
+      border: 2px solid #00796b;
+      border-radius: 5px;
+      outline: none;
+      cursor: pointer;
+      box-sizing: border-box;
+      background: #e0f2f1;
+      color: #004d40;
+      user-select: none;
+    }
+    #goal-input:hover {
+      background: #b2dfdb;
+    }
+
+    #arrow-icon {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      width: 20px;
+      height: 20px;
+      fill: #00796b;
+      transition: transform 0.3s ease;
+    }
+    #arrow-icon.rotate {
+      transform: translateY(-50%) rotate(180deg);
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 200px;
+      overflow-y: auto;
+      background: white;
+      border: 2px solid #00796b;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+      display: none;
+    }
+
+    .course-item {
+      padding: 8px 10px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #004d40;
+      border-bottom: 1px solid #e0f2f1;
+      transition: background 0.2s;
+    }
+    .course-item:hover {
+      background: #b2dfdb;
+    }
+
+    #generate-btn {
+      padding: 10px 20px;
+      background: #00796b;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 15px;
+      transition: background 0.3s;
+      max-width: 400px;
+      width: 100%;
+    }
+    #generate-btn:hover {
+      background: #004d40;
+    }
+
+    #goal-list {
+      margin-top: 25px;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .goal {
+      background: rgba(255 255 255 / 0.9);
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      color: #004d40;
+      user-select: none;
+    }
+
+    .goal h3 {
+      margin-top: 0;
+      margin-bottom: 5px;
+      color: #00695c;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .goal h4 {
+      margin: 8px 0 12px;
+      font-weight: 600;
+      font-size: 16px;
+      color: #00796b;
+    }
+
+    .goal h5 {
+      margin: 10px 0 5px;
+      font-weight: 600;
+      font-size: 15px;
+      color: #004d40;
+    }
+
+    .steps {
+      list-style: none;
+      padding-left: 20px;
+      margin: 5px 0 15px;
+      max-height: 150px;
+      overflow-y: auto;
+      border-left: 3px solid #00796b;
+    }
+
+    .steps li {
+      padding: 6px 0;
+      cursor: pointer;
+      transition: color 0.3s, text-decoration 0.3s;
+      font-size: 14px;
+      color: #004d40;
+    }
+
+    .steps li:hover {
+      color: #00796b;
+    }
+
+    .steps li.completed {
+      text-decoration: line-through;
+      color: #9e9e9e;
+      cursor: default;
+    }
+
+    .resources ul {
+      padding-left: 20px;
+      margin: 5px 0;
+    }
+
+    .resources li {
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .resources a {
+      color: #00796b;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .resources a:hover {
+      color: #004d40;
+      text-decoration: underline;
+    }
+
+    /* Scrollbar styling for dropdown and steps */
+    .dropdown::-webkit-scrollbar,
+    .steps::-webkit-scrollbar {
+      width: 8px;
+    }
+    .dropdown::-webkit-scrollbar-thumb,
+    .steps::-webkit-scrollbar-thumb {
+      background: #00796b;
+      border-radius: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      #goal-input, #generate-btn {
+        max-width: 100%;
+      }
+      #goal-list {
+        max-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>SMART GOAL TRACKER</h1>
+
+  <div class="goal-input-container">
+    <input
+      type="text"
+      id="goal-input"
+      placeholder="Select or type your learning goal"
+      readonly
+    />
+    <svg id="arrow-icon" viewBox="0 0 24 24">
+      <path d="M7 10l5 5 5-5H7z" />
+    </svg>
+    <div id="courses-dropdown" class="dropdown"></div>
+  </div>
+
+  <button id="generate-btn">Generate Study Plan</button>
+
+  <div id="goal-list"></div>
+
+  <script>
+    const coursesData = {
+      "JavaScript": {
+        duration: "4 weeks",
+        basics: ["Variables & Data Types", "Functions", "DOM Manipulation", "Events", "ES6 Features"],
+        advanced: ["Async/Await", "Promises", "Modules", "APIs", "Testing"],
+        resources: [
+          { name: "MDN JavaScript Guide", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide" },
+          { name: "JavaScript Info", url: "https://javascript.info/" }
+        ]
+      },
+      "Python": {
+        duration: "5 weeks",
+        basics: ["Syntax & Variables", "Control Flow", "Functions", "Modules", "File Handling"],
+        advanced: ["OOP", "Decorators", "Generators", "Asyncio", "Testing"],
+        resources: [
+          { name: "Official Python Tutorial", url: "https://docs.python.org/3/tutorial/" },
+          { name: "Real Python", url: "https://realpython.com/" }
+        ]
+      },
+      "React": {
+        duration: "4 weeks",
+        basics: ["JSX", "Components", "Props & State", "Lifecycle Methods", "Hooks"],
+        advanced: ["Context API", "Routing", "Redux", "Performance Optimization", "Testing"],
+        resources: [
+          { name: "React Official Docs", url: "https://reactjs.org/docs/getting-started.html" },
+          { name: "React Tutorial by FreeCodeCamp", url: "https://www.freecodecamp.org/news/learn-react-by-building-a-simple-app-e8b3b47edb39/" }
+        ]
+      },
+      "Node.js": {
+        duration: "4 weeks",
+        basics: ["Setup & Modules", "File System", "Events", "Express Basics", "Middleware"],
+        advanced: ["REST APIs", "Authentication", "Socket.io", "Testing", "Deployment"],
+        resources: [
+          { name: "Node.js Docs", url: "https://nodejs.org/en/docs/" },
+          { name: "Express Guide", url: "https://expressjs.com/en/starter/installing.html" }
+        ]
+      },
+      "Data Structures": {
+        duration: "6 weeks",
+        basics: ["Arrays", "Linked Lists", "Stacks", "Queues", "Trees"],
+        advanced: ["Graphs", "Hash Tables", "Heaps", "Sorting Algorithms", "Dynamic Programming"],
+        resources: [
+          { name: "GeeksforGeeks DSA", url: "https://www.geeksforgeeks.org/data-structures/" },
+          { name: "LeetCode Explore", url: "https://leetcode.com/explore/" }
+        ]
+      },
+      "Machine Learning": {
+        duration: "8 weeks",
+        basics: ["Linear Regression", "Classification", "Clustering", "Decision Trees", "Model Evaluation"],
+        advanced: ["Neural Networks", "Deep Learning", "NLP", "Reinforcement Learning", "Deployment"],
+        resources: [
+          { name: "Coursera ML Course", url: "https://www.coursera.org/learn/machine-learning" },
+          { name: "Google ML Crash Course", url: "https://developers.google.com/machine-learning/crash-course" }
+        ]
+      },
+      "AWS Web Services": {
+        duration: "4 weeks",
+        basics: ["EC2", "S3", "IAM", "VPC", "RDS"],
+        advanced: ["Lambda", "CloudFormation", "Elastic Beanstalk", "CloudWatch", "Auto Scaling"],
+        resources: [
+          { name: "AWS Documentation", url: "https://docs.aws.amazon.com/" },
+          { name: "AWS Training", url: "https://aws.amazon.com/training/" }
+        ]
+      },
+      "Salesforce Basics": {
+        duration: "3 weeks",
+        basics: ["Salesforce Platform", "Objects & Fields", "Data Management", "Reports & Dashboards", "Security"],
+        advanced: ["Apex Programming", "Visualforce", "Lightning Components", "Integration", "App Deployment"],
+        resources: [
+          { name: "Trailhead Salesforce", url: "https://trailhead.salesforce.com/en/home" },
+          { name: "Salesforce Developers", url: "https://developer.salesforce.com/" }
+        ]
+      },
+      "iOS Development": {
+        duration: "5 weeks",
+        basics: ["Xcode Setup", "Swift Basics", "UI Design", "View Controllers", "Table Views"],
+        advanced: ["Networking", "Core Data", "Animations", "App Store Submission", "SwiftUI"],
+        resources: [
+          { name: "Apple Developer", url: "https://developer.apple.com/documentation/" },
+          { name: "Hacking with Swift", url: "https://www.hackingwithswift.com/" }
+        ]
+      },
+      "Git & GitHub": {
+        duration: "1 week",
+        basics: ["Git Basics", "Repositories", "Branches", "Merging", "Pull Requests"],
+        advanced: ["Rebasing", "Conflict Resolution", "Git Workflow", "GitHub Actions", "Code Reviews"],
+        resources: [
+          { name: "Git Official Docs", url: "https://git-scm.com/doc" },
+          { name: "GitHub Guides", url: "https://guides.github.com/" }
+        ]
+      },
+      "UI/UX Design": {
+        duration: "3 weeks",
+        basics: ["Design Principles", "Wireframing", "Prototyping", "User Research", "Typography"],
+        advanced: ["Interaction Design", "Design Systems", "Usability Testing", "Accessibility", "Design Tools"],
+        resources: [
+          { name: "Interaction Design Foundation", url: "https://www.interaction-design.org/" },
+          { name: "Figma Tutorials", url: "https://www.figma.com/resources/learn-design/" }
+        ]
+      },
+      "DevOps Basics": {
+        duration: "3 weeks",
+        basics: ["CI/CD Concepts", "Version Control", "Containers", "Automation Tools", "Monitoring"],
+        advanced: ["Infrastructure as Code", "Configuration Management", "Logging & Alerting", "Cloud Providers", "Security"],
+        resources: [
+          { name: "DevOps Tutorial by Edureka", url: "https://www.edureka.co/blog/devops-tutorial/" },
+          { name: "The Phoenix Project", url: "https://itrevolution.com/book/the-phoenix-project/" }
+        ]
+      },
+      "Blockchain Basics": {
+        duration: "3 weeks",
+        basics: ["Blockchain Concepts", "Cryptography Basics", "Distributed Ledgers", "Smart Contracts", "Use Cases"],
+        advanced: ["Ethereum", "DApps", "Consensus Algorithms", "Security", "Scalability"],
+        resources: [
+          { name: "Blockchain Basics by IBM", url: "https://www.ibm.com/topics/blockchain" },
+          { name: "Ethereum Documentation", url: "https://ethereum.org/en/developers/docs/" }
+        ]
+      },
+      "Python for Data Science": {
+        duration: "5 weeks",
+        basics: ["Numpy", "Pandas Basics", "Matplotlib", "Seaborn", "Data Cleaning"],
+        advanced: ["Feature Engineering", "Scikit-learn", "Model Evaluation", "Data Visualization", "Project Deployment"],
+        resources: [
+          { name: "DataCamp Python", url: "https://www.datacamp.com/courses/intro-to-python-for-data-science" },
+          { name: "Kaggle Python Course", url: "https://www.kaggle.com/learn/python" }
+        ]
+      },
+      "TypeScript": {
+        duration: "2 weeks",
+        basics: ["Types", "Interfaces", "Functions", "Classes", "Generics"],
+        advanced: ["Decorators", "Modules", "Namespaces", "Advanced Types", "Type Inference"],
+        resources: [
+          { name: "TypeScript Official Docs", url: "https://www.typescriptlang.org/docs/" },
+          { name: "TypeScript Deep Dive", url: "https://basarat.gitbook.io/typescript/" }
+        ]
+      },
+      "GraphQL": {
+        duration: "2 weeks",
+        basics: ["Queries & Mutations", "Schema Design", "Resolvers", "Apollo Client", "Server Setup"],
+        advanced: ["Subscriptions", "Performance Optimization", "Security", "Federation", "Testing"],
+        resources: [
+          { name: "GraphQL Official Docs", url: "https://graphql.org/learn/" },
+          { name: "Apollo GraphQL Tutorials", url: "https://www.apollographql.com/docs/tutorial/introduction/" }
+        ]
+      },
+      "Flutter": {
+        duration: "4 weeks",
+        basics: ["Dart Basics", "Widgets", "Layouts", "Navigation", "State Management"],
+        advanced: ["Animations", "Firebase Integration", "Testing", "Publishing", "Performance"],
+        resources: [
+          { name: "Flutter Docs", url: "https://flutter.dev/docs" },
+          { name: "Flutter & Dart Udemy", url: "https://www.udemy.com/course/flutter-dart-the-complete-flutter-app-development-course/" }
+        ]
+      },
+      "C Programming": {
+        duration: "4 weeks",
+        basics: ["Syntax & Variables", "Control Structures", "Functions", "Pointers", "Arrays & Strings"],
+        advanced: ["Dynamic Memory", "File I/O", "Data Structures", "Multithreading", "Networking Basics"],
+        resources: [
+          { name: "C Programming Tutorial", url: "https://www.learn-c.org/" },
+          { name: "GeeksforGeeks C", url: "https://www.geeksforgeeks.org/c-programming-language/" }
+        ]
+      },
+      "Java": {
+        duration: "5 weeks",
+        basics: ["Syntax & Variables", "OOP Concepts", "Exception Handling", "Collections Framework", "Streams"],
+        advanced: ["Concurrency", "JVM Internals", "JavaFX", "Spring Basics", "Testing"],
+        resources: [
+          { name: "Official Java Docs", url: "https://docs.oracle.com/javase/tutorial/" },
+          { name: "Java Programming by GeeksforGeeks", url: "https://www.geeksforgeeks.org/java/" }
+        ]
+      },
+      "Kotlin": {
+        duration: "3 weeks",
+        basics: ["Syntax Basics", "Null Safety", "Functions", "Classes & Objects", "Collections"],
+        advanced: ["Coroutines", "DSL", "Android Development", "Kotlin Multiplatform", "Testing"],
+        resources: [
+          { name: "Kotlin Lang", url: "https://kotlinlang.org/docs/home.html" },
+          { name: "Kotlin by JetBrains", url: "https://play.kotlinlang.org/" }
+        ]
+      },
+      "SQL": {
+        duration: "3 weeks",
+        basics: ["Queries", "Joins", "Indexes", "Transactions", "Stored Procedures"],
+        advanced: ["Performance Tuning", "Replication", "Backup & Recovery", "Security", "NoSQL Basics"],
+        resources: [
+          { name: "SQL Tutorial", url: "https://www.w3schools.com/sql/" },
+          { name: "SQLZoo", url: "https://sqlzoo.net/" }
+        ]
+      },
+      "Docker": {
+        duration: "2 weeks",
+        basics: ["Containers", "Images", "Dockerfile", "Volumes", "Networking"],
+        advanced: ["Docker Compose", "Swarm Mode", "CI/CD Integration", "Security", "Monitoring"],
+        resources: [
+          { name: "Docker Docs", url: "https://docs.docker.com/" },
+          { name: "Play with Docker", url: "https://labs.play-with-docker.com/" }
+        ]
+      }
+    };
+
+    const goalInput = document.getElementById("goal-input");
+    const dropdown = document.getElementById("courses-dropdown");
+    const arrowIcon = document.getElementById("arrow-icon");
+    const generateBtn = document.getElementById("generate-btn");
+    const goalList = document.getElementById("goal-list");
+
+    // Populate dropdown
+    function populateDropdown() {
+      dropdown.innerHTML = "";
+      for (const course in coursesData) {
+        const div = document.createElement("div");
+        div.textContent = course;
+        div.classList.add("course-item");
+        div.addEventListener("click", () => {
+          goalInput.value = course;
+          hideDropdown();
+        });
+        dropdown.appendChild(div);
+      }
+    }
+
+    function showDropdown() {
+      dropdown.style.display = "block";
+      arrowIcon.classList.add("rotate");
+    }
+
+    function hideDropdown() {
+      dropdown.style.display = "none";
+      arrowIcon.classList.remove("rotate");
+    }
+
+    arrowIcon.addEventListener("click", () => {
+      if (dropdown.style.display === "block") {
+        hideDropdown();
+      } else {
+        showDropdown();
+      }
+    });
+
+    goalInput.addEventListener("click", () => {
+      if (dropdown.style.display === "block") {
+        hideDropdown();
+      } else {
+        showDropdown();
+      }
+    });
+
+    document.addEventListener("click", (e) => {
+      if (
+        !goalInput.contains(e.target) &&
+        !dropdown.contains(e.target) &&
+        !arrowIcon.contains(e.target)
+      ) {
+        hideDropdown();
+      }
+    });
+
+    generateBtn.addEventListener("click", () => {
+      const goal = goalInput.value.trim();
+      if (!goal) {
+        alert("Please select or type your learning goal.");
+        return;
+      }
+      if (!coursesData[goal]) {
+        alert("Sorry, the goal is not in the predefined list. Please select a valid goal.");
+        return;
+      }
+      displayGoalPlan(goal);
+    });
+
+    function displayGoalPlan(goal) {
+      goalList.innerHTML = ""; // Clear previous
+      const data = coursesData[goal];
+
+      const goalDiv = document.createElement("div");
+      goalDiv.classList.add("goal");
+
+      const title = document.createElement("h3");
+      title.textContent = `Learning Goal: ${goal}`;
+      goalDiv.appendChild(title);
+
+      const duration = document.createElement("h4");
+      duration.textContent = `Suggested Duration: ${data.duration}`;
+      goalDiv.appendChild(duration);
+
+      const basicsTitle = document.createElement("h5");
+      basicsTitle.textContent = "Basic Steps:";
+      goalDiv.appendChild(basicsTitle);
+
+      const basicsList = document.createElement("ul");
+      basicsList.classList.add("steps");
+      data.basics.forEach((step) => {
+        const li = document.createElement("li");
+        li.textContent = step;
+        li.addEventListener("click", () => {
+          li.classList.toggle("completed");
+        });
+        basicsList.appendChild(li);
+      });
+      goalDiv.appendChild(basicsList);
+
+      const advTitle = document.createElement("h5");
+      advTitle.textContent = "Advanced Steps:";
+      goalDiv.appendChild(advTitle);
+
+      const advList = document.createElement("ul");
+      advList.classList.add("steps");
+      data.advanced.forEach((step) => {
+        const li = document.createElement("li");
+        li.textContent = step;
+        li.addEventListener("click", () => {
+          li.classList.toggle("completed");
+        });
+        advList.appendChild(li);
+      });
+      goalDiv.appendChild(advList);
+
+      const resTitle = document.createElement("h5");
+      resTitle.textContent = "Resources:";
+      goalDiv.appendChild(resTitle);
+
+      const resList = document.createElement("ul");
+      resList.classList.add("resources");
+      data.resources.forEach((res) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = res.url;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = res.name;
+        li.appendChild(a);
+        resList.appendChild(li);
+      });
+      goalDiv.appendChild(resList);
+
+      goalList.appendChild(goalDiv);
+
+      hideDropdown();
+      goalInput.value = "";
+    }
+
+    // Initialize dropdown list on page load
+    populateDropdown();
+  </script>
+</body>
+</html>
